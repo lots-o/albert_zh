@@ -108,6 +108,9 @@ flags.DEFINE_integer(
     "num_tpu_cores", 8,
     "Only used if `use_tpu` is True. Total number of TPU cores to use.")
 
+flags.DEFINE_integer(
+    "keep_checkpoint_max", 10,
+    "How many checkpoints to store")
 
 def model_fn_builder(bert_config, init_checkpoint, learning_rate,
                      num_train_steps, num_warmup_steps, use_tpu,
@@ -439,7 +442,7 @@ def main(_):
 
   is_per_host = tf.compat.v1.estimator.tpu.InputPipelineConfig.PER_HOST_V2
   run_config = tf.compat.v1.estimator.tpu.RunConfig(
-      keep_checkpoint_max=10, # 10
+      keep_checkpoint_max=FLAGS.keep_checkpoint_max, # 10
       cluster=tpu_cluster_resolver,
       master=FLAGS.master,
       model_dir=FLAGS.output_dir,
