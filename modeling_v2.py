@@ -1183,16 +1183,16 @@ def prelln_transformer_model(input_tensor,
 
 		idx_scope = layer_scope(layer_idx, shared_type)
 
-		with tf.variable_scope(idx_scope['layer'], reuse=tf.AUTO_REUSE):
+		with tf.compat.v1.variable_scope(idx_scope['layer'], reuse=tf.compat.v1.AUTO_REUSE):
 			layer_input = prev_output
 
-			with tf.variable_scope(idx_scope['attention'], reuse=tf.AUTO_REUSE):
+			with tf.compat.v1.variable_scope(idx_scope['attention'], reuse=tf.compat.v1.AUTO_REUSE):
 				attention_heads = []
 
-				with tf.variable_scope("output", reuse=tf.AUTO_REUSE):
+				with tf.compat.v1.variable_scope("output", reuse=tf.compat.v1.AUTO_REUSE):
 					layer_input_pre = layer_norm(layer_input)
 
-				with tf.variable_scope("self"):
+				with tf.compat.v1.variable_scope("self"):
 					attention_head = attention_layer(
 							from_tensor=layer_input_pre,
 							to_tensor=layer_input_pre,
@@ -1217,8 +1217,8 @@ def prelln_transformer_model(input_tensor,
 
 				# Run a linear projection of `hidden_size` then add a residual
 				# with `layer_input`.
-				with tf.compat.v1.variable_scope("output", reuse=tf.AUTO_REUSE):
-					attention_output = tf.layers.dense(
+				with tf.compat.v1.variable_scope("output", reuse=tf.compat.v1.AUTO_REUSE):
+					attention_output = tf.compat.v1.layers.dense(
 							attention_output,
 							hidden_size,
 							kernel_initializer=create_initializer(initializer_range))
@@ -1227,20 +1227,20 @@ def prelln_transformer_model(input_tensor,
 					# attention_output = layer_norm(attention_output + layer_input)
 					attention_output = attention_output + layer_input
 
-			with tf.compat.v1.variable_scope(idx_scope['output'], reuse=tf.AUTO_REUSE):
+			with tf.compat.v1.variable_scope(idx_scope['output'], reuse=tf.compat.v1.AUTO_REUSE):
 				attention_output_pre = layer_norm(attention_output)
 
 			# The activation is only applied to the "intermediate" hidden layer.
-			with tf.compat.v1.variable_scope(idx_scope['intermediate'], reuse=tf.AUTO_REUSE):
-				intermediate_output = tf.layers.dense(
+			with tf.compat.v1.variable_scope(idx_scope['intermediate'], reuse=tf.compat.v1.AUTO_REUSE):
+				intermediate_output = tf.compat.v1.layers.dense(
 						attention_output_pre,
 						intermediate_size,
 						activation=intermediate_act_fn,
 						kernel_initializer=create_initializer(initializer_range))
 
 			# Down-project back to `hidden_size` then add the residual.
-			with tf.compat.v1.variable_scope(idx_scope['output'], reuse=tf.AUTO_REUSE):
-				layer_output = tf.layers.dense(
+			with tf.compat.v1.variable_scope(idx_scope['output'], reuse=tf.compat.v1.AUTO_REUSE):
+				layer_output = tf.compat.v1.layers.dense(
 						intermediate_output,
 						hidden_size,
 						kernel_initializer=create_initializer(initializer_range))
