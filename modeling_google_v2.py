@@ -366,9 +366,9 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint, num_of_group=0):
       tvar_name = re.sub(r"/attention_\d+/", "/attention_1/",
                          six.ensure_str(name))
     else:
-      tf.logging.info("name %s does not get matched", name)
+      tf.compat.v1.logging.info("name %s does not get matched", name)
       continue
-    tf.logging.info("name %s match to %s", name, tvar_name)
+    tf.compat.v1.logging.info("name %s match to %s", name, tvar_name)
     if num_of_group > 0:
       group_matched = False
       for gid in range(1, num_of_group):
@@ -376,7 +376,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint, num_of_group=0):
             ("/ffn_" + str(gid) + "/" in name) or
             ("/attention_" + str(gid) + "/" in name)):
           group_matched = True
-          tf.logging.info("%s belongs to %dth", name, gid)
+          tf.compat.v1.logging.info("%s belongs to %dth", name, gid)
           assignment_map[gid][tvar_name] = name
       if not group_matched:
         assignment_map[0][tvar_name] = name
@@ -403,13 +403,16 @@ def dropout(input_tensor, dropout_prob):
   output = tf.nn.dropout(input_tensor, rate=dropout_prob)
   return output
 
-
-def layer_norm(input_tensor, name=None):
+"""
+# NOTE: name = None 인 경우 `layer_normalization` 으로 pytorch convert script와 호환되지 않는 scope 가 생성되므로 명시적으로 적용
+https://github.com/huggingface/transformers/blob/v4.37.2/src/transformers/models/albert/convert_albert_original_tf_checkpoint_to_pytorch.py
+"""
+def layer_norm(input_tensor, name="LayerNorm"):
   """Run layer normalization on the last dimension of the tensor."""
   return tf.keras.layers.LayerNormalization(name=name,axis=-1,epsilon=1e-12,dtype=tf.float32)(input_tensor)
 
 
-def layer_norm_and_dropout(input_tensor, dropout_prob, name=None):
+def layer_norm_and_dropout(input_tensor, dropout_prob, name="LayerNorm"):
   """Runs layer normalization followed by dropout."""
   output_tensor = layer_norm(input_tensor, name)
   output_tensor = dropout(output_tensor, dropout_prob)
@@ -981,7 +984,7 @@ def attention_ffn_block(layer_input,
           intermediate_act_fn,
           num_attention_heads=num_attention_heads,
           name="dense",
-          num_groups=16)
+          num_groups=1) # num_groups = 1 : original albert
       with tf.compat.v1.variable_scope("output"):
         ffn_output = dense_layer_2d(
             intermediate_output,
@@ -990,7 +993,7 @@ def attention_ffn_block(layer_input,
             None,
             num_attention_heads=num_attention_heads,
             name="dense",
-            num_groups=16)
+            num_groups=1)
       ffn_output = dropout(ffn_output, hidden_dropout_prob)
   ffn_output = layer_norm(ffn_output + attention_output)
   return ffn_output
@@ -1063,7 +1066,7 @@ def transformer_model(input_tensor,
     for layer_idx in range(num_hidden_layers):
       group_idx = int(layer_idx / num_hidden_layers * num_hidden_groups)
       with tf.compat.v1.variable_scope("group_%d" % group_idx):
-        with tf.name_scope("layer_%d" % layer_idx):
+        with tf.name_scope("layer_%d" % layer_idx) as scope:
           layer_output = prev_output
           for inner_group_idx in range(inner_group_num):
             with tf.compat.v1.variable_scope("inner_group_%d" % inner_group_idx):
