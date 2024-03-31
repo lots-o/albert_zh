@@ -204,7 +204,7 @@ def model_fn_builder(albert_config, init_checkpoint, learning_rate,
           for gid in range(num_of_initialize_group):
             tf.compat.v1.logging.info("initialize the %dth layer", gid)
             tf.compat.v1.logging.info(assignment_map[gid])
-            tf.train.init_from_checkpoint(init_checkpoint, assignment_map[gid])
+            tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map[gid])
           return tf.train.Scaffold()
 
         scaffold_fn = tpu_scaffold
@@ -212,7 +212,7 @@ def model_fn_builder(albert_config, init_checkpoint, learning_rate,
         for gid in range(num_of_initialize_group):
           tf.compat.v1.logging.info("initialize the %dth layer", gid)
           tf.compat.v1.logging.info(assignment_map[gid])
-          tf.train.init_from_checkpoint(init_checkpoint, assignment_map[gid])
+          tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map[gid])
 
     tf.compat.v1.logging.info("**** Trainable Variables ****")
     for var in tvars:
