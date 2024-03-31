@@ -544,7 +544,7 @@ def main(_):
     tf.compat.v1.logging.info("  Batch size = %d", FLAGS.eval_batch_size)
     global_step = -1
     output_eval_file = os.path.join(FLAGS.output_dir, "eval_results.txt")
-    writer = tf.io.gfile.GFile.GFile(output_eval_file, "w")
+    writer = tf.io.gfile.GFile(output_eval_file, "w")
     tf.io.gfile.GFile.MakeDirs(FLAGS.export_dir)
     eval_input_fn = input_fn_builder(
         input_files=input_files,
