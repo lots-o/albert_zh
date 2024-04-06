@@ -205,7 +205,7 @@ def model_fn_builder(albert_config, init_checkpoint, learning_rate,
             tf.compat.v1.logging.info("initialize the %dth layer", gid)
             tf.compat.v1.logging.info(assignment_map[gid])
             tf.compat.v1.train.init_from_checkpoint(init_checkpoint, assignment_map[gid])
-          return tf.train.Scaffold()
+          return tf.compat.v1.train.Scaffold()
 
         scaffold_fn = tpu_scaffold
       else:
