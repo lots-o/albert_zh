@@ -48,9 +48,7 @@ flags.DEFINE_string(
     "output_dir", None,
     "The output directory where the model checkpoints will be written.")
 
-flags.DEFINE_string(
-    "export_dir", None,
-    "The output directory where the saved models will be written.")
+
 ## Other parameters
 flags.DEFINE_string(
     "init_checkpoint", None,
@@ -542,27 +540,21 @@ def main(_):
   if FLAGS.do_eval:
     tf.compat.v1.logging.info("***** Running evaluation *****")
     tf.compat.v1.logging.info("  Batch size = %d", FLAGS.eval_batch_size)
-    global_step = -1
-    output_eval_file = os.path.join(FLAGS.output_dir, "eval_results.txt")
-    writer = tf.io.gfile.GFile(output_eval_file, "w")
-    tf.io.gfile.makedirs(FLAGS.export_dir)
+
     eval_input_fn = input_fn_builder(
         input_files=input_files,
         max_seq_length=FLAGS.max_seq_length,
         max_predictions_per_seq=FLAGS.max_predictions_per_seq,
         is_training=False)
-    while global_step < FLAGS.num_train_steps:
-      if estimator.latest_checkpoint() is None:
-        tf.compat.v1.logging.info("No checkpoint found yet. Sleeping.")
-        time.sleep(1)
-      else:
-        result = estimator.evaluate(
-            input_fn=eval_input_fn, steps=FLAGS.max_eval_steps)
-        global_step = result["global_step"]
-        tf.compat.v1.logging.info("***** Eval results *****")
-        for key in sorted(result.keys()):
-          tf.compat.v1.logging.info("  %s = %s", key, str(result[key]))
-          writer.write("%s = %s\n" % (key, str(result[key])))
+
+    result = estimator.evaluate(input_fn=eval_input_fn, steps=FLAGS.max_eval_steps)
+
+    output_eval_file = os.path.join(FLAGS.output_dir, "eval_results.txt")
+    with tf.io.gfile.GFile(output_eval_file, "w") as writer:
+      tf.compat.v1.logging.info("***** Eval results *****")
+      for key in sorted(result.keys()):
+        tf.compat.v1.logging.info("  %s = %s", key, str(result[key]))
+        writer.write("%s = %s\n" % (key, str(result[key])))
 
 if __name__ == "__main__":
   flags.mark_flag_as_required("input_file")
