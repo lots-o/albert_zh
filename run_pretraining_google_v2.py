@@ -247,11 +247,11 @@ def model_fn_builder(albert_config, init_checkpoint, learning_rate,
         masked_lm_example_loss = tf.reshape(masked_lm_example_loss, [-1])
         masked_lm_ids = tf.reshape(masked_lm_ids, [-1])
         masked_lm_weights = tf.reshape(masked_lm_weights, [-1])
-        masked_lm_accuracy = tf.metrics.accuracy(
+        masked_lm_accuracy = tf.compat.v1.metrics.accuracy(
             labels=masked_lm_ids,
             predictions=masked_lm_predictions,
             weights=masked_lm_weights)
-        masked_lm_mean_loss = tf.metrics.mean(
+        masked_lm_mean_loss = tf.compat.v1.metrics.mean(
             values=masked_lm_example_loss, weights=masked_lm_weights)
 
         metrics = {
@@ -264,10 +264,10 @@ def model_fn_builder(albert_config, init_checkpoint, learning_rate,
         sentence_order_predictions = tf.argmax(
             sentence_order_log_probs, axis=-1, output_type=tf.int32)
         sentence_order_labels = tf.reshape(sentence_order_labels, [-1])
-        sentence_order_accuracy = tf.metrics.accuracy(
+        sentence_order_accuracy = tf.compat.v1.metrics.accuracy(
             labels=sentence_order_labels,
             predictions=sentence_order_predictions)
-        sentence_order_mean_loss = tf.metrics.mean(
+        sentence_order_mean_loss = tf.compat.v1.metrics.mean(
             values=sentence_order_example_loss)
         metrics.update({
             "sentence_order_accuracy": sentence_order_accuracy,
